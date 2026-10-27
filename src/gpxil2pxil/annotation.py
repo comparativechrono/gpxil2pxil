@@ -21,6 +21,13 @@ INCOMPLETE = {"cds_start_NF", "cds_end_NF", "mRNA_start_NF", "mRNA_end_NF"}
 
 #: the Gpxil browser's gene files: Ensembl release 116 on GRCh38, every transcript
 BROWSER_DATA = "https://comparativechrono.github.io/Gpxil-browser/data/grch38"
+#: an environment variable naming another copy of them (a URL or a folder), used in place of BROWSER_DATA
+BROWSER_DATA_ENV = "GPXIL_BROWSER_DATA"
+
+
+def browser_data_base() -> str:
+    """Where the Gpxil browser's files are read from: $GPXIL_BROWSER_DATA, else the browser's own site."""
+    return os.environ.get(BROWSER_DATA_ENV) or BROWSER_DATA
 
 
 class AnnotationError(LookupError):
@@ -141,8 +148,8 @@ class BrowserData:
     fetches its contig's gene list, and a range request just its transcripts.
     """
 
-    def __init__(self, base: str = BROWSER_DATA, *, timeout: float = 60):
-        self.base = str(base).rstrip("/")
+    def __init__(self, base: str | None = None, *, timeout: float = 60):
+        self.base = str(base or browser_data_base()).rstrip("/")
         self.timeout = timeout
         self._index: list | None = None
         self._aliases: dict | None = None
@@ -407,7 +414,8 @@ class GTF:
 
 
 def annotation(source: str | None):
-    """The annotation for a source: a GTF file, a folder or URL of the Gpxil browser's files, or None for the browser's own."""
+    """The annotation for a source: a GTF file, a folder or URL of the Gpxil browser's files, or None for the browser's own
+    (or the copy that $GPXIL_BROWSER_DATA names)."""
     if source is None:
         return BrowserData()
     s = str(source)

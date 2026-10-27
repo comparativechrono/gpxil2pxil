@@ -6,7 +6,7 @@ import argparse
 import sys
 
 from . import __version__
-from .annotation import BROWSER_DATA, AnnotationError, annotation
+from .annotation import BROWSER_DATA, BROWSER_DATA_ENV, AnnotationError, annotation
 from .build import KINDS, make
 
 
@@ -58,7 +58,11 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         help="ref, 1, 2, both or all, separated by commas; auto (default): both haplotypes for a file with a sample, else the reference",
     )
-    p.add_argument("-a", "--annotation", help=f"a GTF file, or a folder or URL of the Gpxil browser's gene files (default: {BROWSER_DATA})")
+    p.add_argument(
+        "-a",
+        "--annotation",
+        help=f"a GTF file, or a folder or URL of the Gpxil browser's gene files (default: ${BROWSER_DATA_ENV} if set, else {BROWSER_DATA})",
+    )
     p.add_argument("-o", "--output", default=".", help="folder for the files (default: here)")
     p.add_argument("--width", type=int, help="residues per row (default: about square)")
     p.add_argument("--reference", help="the reference (FASTA or gpxil, path or URL) for a file written without one")

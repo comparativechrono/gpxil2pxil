@@ -27,6 +27,10 @@ gpxil2pxil HG002.gpxil.tif TP53 --list
 gpxil2pxil genome.gpxil.tif MYGENE --annotation Homo_sapiens.GRCh38.116.gtf.gz
 ```
 
+To read the Gpxil browser's gene files from a copy of them (a folder, or
+another web address), set `GPXIL_BROWSER_DATA` to it, or give it as
+`--annotation`.
+
 Files are named with the Ensembl IDs, and with the sample and haplotype when
 they come from one:
 

@@ -1,8 +1,10 @@
-# Publishes gpxil2pxil to PyPI.
+# Publishes gpxil2pxil to PyPI. (This is ready for the package's own repository, comparativechrono/gpxil2pxil:
+# GitHub runs only a repository's top-level .github/workflows, so it doesn't run in Gpxil-scratchpad.)
 #
 # It uses PyPI's trusted publishing, so no token is stored anywhere: PyPI must be told once that this repository's
 # workflow "release.yml", with the environment "pypi", may publish the project gpxil2pxil (on PyPI, the project's
 # Settings > Publishing; before the first release, your account's Publishing page, as a "pending publisher").
+# gpxil2pxil needs gpxiltools 0.3 and pxil 0.1 from PyPI, so release those first.
 #
 # To release: set the new version in src/gpxil2pxil/__init__.py (pyproject.toml reads it from there), merge, and
 # publish a GitHub release with a new tag of the version, such as v0.1.0. Pushing the tag does the same. The workflow

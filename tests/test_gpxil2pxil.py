@@ -335,11 +335,24 @@ def test_command_line(world, tmp_path):
     with contextlib.redirect_stdout(out):
         assert main([str(world["gpx"]), "GENEB", "-a", str(world["gtf"]), "--list"]) == 0
     assert "* GENEB-201" in out.getvalue() and "GENEB-202" in out.getvalue()
+    assert "ENSG00000000002 chr7:3,001-3,500 (-)" in out.getvalue()  # the file's name for the GTF's contig 7
     err = io.StringIO()
     with contextlib.redirect_stderr(err):
         assert main([str(world["gpx"]), "NOPE", "-a", str(world["gtf"])]) == 1
         assert main([str(world["ref"]), "GENEA", "-a", str(world["gtf"]), "--haplotypes", "1"]) == 1
     assert "NOPE" in err.getvalue() and "no sample" in err.getvalue()
+
+
+def test_a_reader_that_stops_early(world, tmp_path):
+    # gpxil2pxil … | head: no traceback when the pipe closes
+    import subprocess
+    import sys
+
+    # (true reads nothing and is gone before anything is written: the write fails, every time)
+    gpx, gtf = world["gpx"], world["gtf"]
+    cmd = f'"{sys.executable}" -m gpxil2pxil "{gpx}" GENEA GENEB -a "{gtf}" -o "{tmp_path}" -t all | true'
+    run = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+    assert "Traceback" not in run.stderr and "BrokenPipe" not in run.stderr and "Exception ignored" not in run.stderr, run.stderr
 
 
 @pytest.mark.skipif(not os.environ.get("GPXIL2PXIL_NETWORK"), reason="set GPXIL2PXIL_NETWORK=1 to use the Gpxil browser's files")

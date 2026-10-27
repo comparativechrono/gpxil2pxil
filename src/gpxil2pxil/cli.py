@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 
 from . import __version__
@@ -71,6 +72,33 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv=None) -> int:
+    try:
+        code = _main(argv)
+        sys.stdout.flush()  # (here, so that a reader that has gone is noticed here, not as Python exits)
+        return code
+    except BrokenPipeError:
+        # the reader stopped early (gpxil2pxil … | head): not an error of ours, so no traceback. Python's own
+        # advice: point stdout at /dev/null, so that the flush at exit doesn't fail again
+        try:
+            devnull = os.open(os.devnull, os.O_WRONLY)
+            os.dup2(devnull, sys.stdout.fileno())
+        except (OSError, ValueError, AttributeError):
+            pass
+        return 1
+
+
+def _contig_names(path, reference):
+    """the file's own name for each contig name it knows (17 → chr17), to list genes as the file names them"""
+    from gpxiltools import GpxilFile
+
+    try:
+        with GpxilFile(path, reference=reference) as g:
+            return lambda name: g[name].name if name in g else name
+    except Exception:  # (a file that can't be opened just now: the annotation's names)
+        return lambda name: name
+
+
+def _main(argv=None) -> int:
     from gpxiltools import GpxilFile
 
     a = build_parser().parse_args(argv)
@@ -81,9 +109,10 @@ def main(argv=None) -> int:
         print(f"gpxil2pxil: error: {exc}", file=sys.stderr)
         return 1
     if a.list:
+        named = _contig_names(a.file, a.reference)
         for _q, g in genes.items():
             print(
-                f"{g.name} {g.id} {g.contig}:{g.start + 1:,}-{g.end:,} ({'+' if g.strand == 1 else '-'}), {g.biotype}, {len(g.transcripts)} transcripts"
+                f"{g.name} {g.id} {named(g.contig)}:{g.start + 1:,}-{g.end:,} ({'+' if g.strand == 1 else '-'}), {g.biotype}, {len(g.transcripts)} transcripts"
             )
             canon = g.canonical()
             for t in g.transcripts:

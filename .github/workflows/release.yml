@@ -1,5 +1,4 @@
-# Publishes gpxil2pxil to PyPI. (This is ready for the package's own repository, comparativechrono/gpxil2pxil:
-# GitHub runs only a repository's top-level .github/workflows, so it doesn't run in Gpxil-scratchpad.)
+# Publishes gpxil2pxil to PyPI.
 #
 # It uses PyPI's trusted publishing, so no token is stored anywhere: PyPI must be told once that this repository's
 # workflow "release.yml", with the environment "pypi", may publish the project gpxil2pxil (on PyPI, the project's

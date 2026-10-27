@@ -78,6 +78,10 @@ pytest                                  # a made-up genome whose genes and varia
 GPXIL2PXIL_NETWORK=1 pytest             # also TP53 from the Gpxil browser
 ```
 
+It began in [Gpxil-scratchpad](https://github.com/comparativechrono/Gpxil-scratchpad),
+where the tools for gpxil are tried out first, and runs in
+[GpxilStudio](https://github.com/comparativechrono/GpxilStudio), in the browser.
+
 ## Licence
 
 Copyright © 2026 Chronomic Medicine Group, Department of Genomic Medicine,

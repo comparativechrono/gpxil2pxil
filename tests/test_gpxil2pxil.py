@@ -343,6 +343,56 @@ def test_command_line(world, tmp_path):
     assert "NOPE" in err.getvalue() and "no sample" in err.getvalue()
 
 
+WINDOWS = pytest.mark.skipif(not hasattr(GpxilFile, "locate"), reason="windows (gpxil 0.3) need gpxiltools 0.7 or later")
+
+
+@WINDOWS
+def test_a_window_gives_what_the_whole_chromosome_gives(world, tmp_path):
+    # GENEA (1000-1750, with its intron's insertion) in a window cut out of the whole file, as gpxil subset and
+    # GpxilStudio's viewer make one: the same sequences, proteins and files, named by the chromosome
+    from gpxiltools.subset import subset
+
+    from gpxil2pxil.sequence import codes_to_letters
+
+    win = tmp_path / "GENEA.gpxil.tif"
+    subset(str(world["gpx"]), str(win), ["chr7:901-2,000"], log=lambda m: None)
+    genes = GTF(world["gtf"]).find_all(["GENEA", "GENEB"])
+    a, b = genes["GENEA"], genes["GENEB"]
+    with GpxilFile(world["gpx"]) as whole, GpxilFile(win) as w:
+        assert [(c.name, c.parent, c.start) for c in w] == [("chr7:901-2000", "chr7", 900)]
+        for h in (None, 1, 2):
+            assert codes_to_letters(Source(w, h).gene(a)) == codes_to_letters(Source(whole, h).gene(a))
+            for t in a.transcripts:
+                assert Source(w, h).spliced(t).letters() == Source(whole, h).spliced(t).letters()
+                if t.coding:
+                    assert Source(w, h).protein(t) == Source(whole, h).protein(t)
+        mine = make(w, a, haplotypes=(None, 1, 2), transcripts="all", out_dir=str(tmp_path / "window"))
+        theirs = make(whole, a, haplotypes=(None, 1, 2), transcripts="all", out_dir=str(tmp_path / "whole"))
+        listed = [(os.path.basename(f.path), f.length, f.notes) for f in mine]
+        assert listed == [(os.path.basename(f.path), f.length, f.notes) for f in theirs] and len(listed) == 9
+        for f, g in zip(mine, theirs, strict=True):
+            assert pxil.read(f.path) == pxil.read(g.path)  # (the same sequence, and the same metadata: contig chr7)
+        # GENEB is not in the window
+        with pytest.raises(KeyError, match="isn't all in a window"):
+            Source(w).gene(b)
+    # without its reference plane, the window takes its bases from the reference (found by the chromosome's digests)
+    bare = tmp_path / "GENEA.noref.gpxil.tif"
+    subset(str(world["gpx"]), str(bare), ["chr7:901-2,000"], include_ref=False, log=lambda m: None)
+    with GpxilFile(bare, reference=str(world["ref"])) as w, GpxilFile(world["gpx"]) as whole:
+        assert "ref" not in w["chr7:901-2000"].planes  # (stored: the reference supplies it)
+        for h in (None, 1, 2):
+            assert Source(w, h).protein(a.transcripts[0]) == Source(whole, h).protein(a.transcripts[0])
+    # the command line
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out):
+        assert main([str(win), "GENEA", "-a", str(world["gtf"]), "-o", str(tmp_path / "cli"), "--haplotypes", "all"]) == 0
+        assert main([str(win), "GENEA", "-a", str(world["gtf"]), "--list"]) == 0
+    assert "9 pxil files" in out.getvalue() and "ENSG00000000001 chr7:1,001-1,750 (+)" in out.getvalue()
+    with contextlib.redirect_stderr(err):
+        assert main([str(win), "GENEB", "-a", str(world["gtf"]), "-o", str(tmp_path / "cli")]) == 1
+    assert "GENEB: 7:3,001-3,500 isn't all in a window" in err.getvalue() and "chr7:901-2,000" in err.getvalue()
+
+
 def test_a_reader_that_stops_early(world, tmp_path):
     # gpxil2pxil … | head: no traceback when the pipe closes
     import subprocess

@@ -91,9 +91,11 @@ def _contig_names(path, reference):
     """the file's own name for each contig name it knows (17 → chr17), to list genes as the file names them"""
     from gpxiltools import GpxilFile
 
+    from .sequence import chromosome_name
+
     try:
         with GpxilFile(path, reference=reference) as g:
-            return lambda name: g[name].name if name in g else name
+            return lambda name: chromosome_name(g, name)  # (the file's metadata, still there once it is closed)
     except Exception:  # (a file that can't be opened just now: the annotation's names)
         return lambda name: name
 
@@ -125,9 +127,12 @@ def _main(argv=None) -> int:
             if any(haps) and not g.sample_id:
                 print(f"gpxil2pxil: error: {a.file} has no sample, so it has no haplotypes; use --haplotypes ref", file=sys.stderr)
                 return 1
-            total = 0
+            total, kinds = 0, a.kinds.split(",")
             for _q, gene in genes.items():
-                files = make(g, gene, transcripts=a.transcripts, kinds=a.kinds.split(","), haplotypes=haps, out_dir=a.output, width=a.width)
+                try:
+                    files = make(g, gene, transcripts=a.transcripts, kinds=kinds, haplotypes=haps, out_dir=a.output, width=a.width)
+                except KeyError as exc:  # (a gene the file doesn't hold, such as one outside its windows)
+                    raise KeyError(f"{gene.name}: {exc.args[0] if exc.args else exc}") from None
                 for f in files:
                     print(
                         f"wrote {f.path} ({f.length:,} {'amino acids' if f.kind == 'protein' else 'bases'})"

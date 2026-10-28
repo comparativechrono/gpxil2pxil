@@ -21,7 +21,7 @@ import pxil
 
 from . import __version__
 from .annotation import Gene, Transcript
-from .sequence import DNA, Source, codes_to_letters, genetic_code_for, haplotype_changes, protein_differences
+from .sequence import DNA, Source, chromosome_name, codes_to_letters, genetic_code_for, haplotype_changes, protein_differences
 
 KINDS = ("gene", "transcript", "protein")
 
@@ -85,7 +85,7 @@ def make(
     common = {
         "source": gene.source or None,
         "assembly": assembly,
-        "contig": gfile[gene.contig].name if gene.contig in gfile else gene.contig,  # the gpxil file's name for it
+        "contig": chromosome_name(gfile, gene.contig),  # the gpxil file's name for it (a window's: its chromosome's)
         "gene": gene.id,
         "generator": f"gpxil2pxil {__version__}",
     }

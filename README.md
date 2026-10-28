@@ -25,11 +25,22 @@ gpxil2pxil HG002.gpxil.tif TP53 --list
 
 # another assembly or annotation: a GTF
 gpxil2pxil genome.gpxil.tif MYGENE --annotation Homo_sapiens.GRCh38.116.gtf.gz
+
+# a window: TP53 and 100 kb either side, cut out of HG002's genome (gpxil subset … chr17:7,561,779-7,787,546)
+gpxil2pxil HG002_TP53.gpxil.tif TP53 --haplotypes all
 ```
 
 To read the Gpxil browser's gene files from a copy of them (a folder, or
 another web address), set `GPXIL_BROWSER_DATA` to it, or give it as
 `--annotation`.
+
+A gpxil file can hold windows (gpxil 0.3): stretches of a chromosome that keep
+its positions, cut out of a genome with `gpxil subset FILE chr17:7,561,779-7,787,546`
+or saved from GpxilStudio's viewer. A gene is found in the window that holds it,
+so a window of a few kilobytes gives the same files as the whole genome
+(windows need gpxiltools 0.7 or later). A window kept without its reference
+plane takes its bases from `--reference`, such as the Gpxil browser's
+chromosome.
 
 Files are named with the Ensembl IDs, and with the sample and haplotype when
 they come from one:

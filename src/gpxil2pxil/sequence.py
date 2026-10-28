@@ -111,8 +111,32 @@ class Spliced:
         return codes_to_letters(self.codes)
 
 
+def locate(gfile, contig: str, start: int, end: int):
+    """Where ``[start, end)`` of a chromosome is in a gpxil file: ``(contig, start, end)`` at the contig's own offsets.
+    A window (gpxil 0.3) holds a stretch of a chromosome and keeps its positions, and gpxiltools 0.7 and later find a
+    region of the chromosome in it; with an older gpxiltools, the file's contigs are whole."""
+    if hasattr(gfile, "locate"):
+        try:
+            return gfile.locate(contig, start, end)
+        except IndexError as exc:  # (gpxiltools says where it is not, and what the file holds)
+            raise KeyError(exc.args[0] if exc.args else f"{contig}:{start + 1:,}-{end:,} is not all in {gfile.path}") from None
+    if contig not in gfile:
+        raise KeyError(f"{contig} is not in {gfile.path}")
+    return gfile[contig], start, end
+
+
+def chromosome_name(gfile, name: str) -> str:
+    """The gpxil file's own name for a chromosome (17 → chr17): its contig's, or that of the sequence its windows hold."""
+    if name in gfile:
+        c = gfile[name]
+        return getattr(c, "parent", c.name)
+    wins = gfile.windows_of(name) if hasattr(gfile, "windows_of") else []
+    return wins[0].parent if wins else name
+
+
 class Source:
-    """Where sequences come from: the reference of a gpxil contig, or one haplotype of its sample (1 or 2)."""
+    """Where sequences come from: the reference of a gpxil contig, or one haplotype of its sample (1 or 2). A gene
+    is found by its chromosome's positions, in the whole chromosome or in a window (gpxil 0.3) that holds it."""
 
     def __init__(self, gfile, haplotype: int | None = None):
         if haplotype not in (None, 1, 2):
@@ -134,11 +158,15 @@ class Source:
         return c
 
     def dna(self, contig: str, start: int, end: int) -> np.ndarray:
-        """[start, end) on the forward strand, as codes."""
-        c = self.contig(contig)
+        """[start, end) of the chromosome on the forward strand, as codes."""
+        if start >= end:
+            return np.zeros(0, dtype=np.uint8)
+        c, s, e = locate(self.g, contig, start, end)
+        if self.haplotype and not c.has("gt"):
+            raise KeyError(f"{c.name} has no genotypes in {self.g.path}, so it has no haplotype {self.haplotype}")
         if self.haplotype is None:
-            return c.read("ref", start, end)
-        return letters_to_codes(haplotype_sequence(c, self.haplotype, start, end, keep_case=True))
+            return c.read("ref", s, e)
+        return letters_to_codes(haplotype_sequence(c, self.haplotype, s, e, keep_case=True))
 
     def gene(self, gene: Gene) -> np.ndarray:
         """The gene's genomic sequence, 5' to 3' (introns and all)."""
@@ -206,11 +234,11 @@ def protein_differences(ref: str, alt: str) -> list[str]:
 
 def haplotype_changes(gfile, contig: str, h: int, spans: list[tuple[int, int]]) -> int:
     """Positions where haplotype ``h`` differs from the reference within the spans (substitutions, deleted bases, insertions)."""
-    c = gfile[contig]
-    if not c.has("gt"):
-        return 0
     n = 0
-    for s, e in spans:
+    for s0, e0 in spans:
+        c, s, e = locate(gfile, contig, s0, e0)
+        if not c.has("gt"):
+            continue
         gt = c.read("gt", s, e)
         st = C.normalize_states(C.hap1(gt) if h == 1 else C.hap2(gt))
         n += int(np.isin(st, C.HAP_SUB_CODES + (C.HAP_DEL,)).sum())

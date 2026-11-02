@@ -9,7 +9,7 @@ Copyright (c) 2026 Chronomic Medicine Group, Department of Genomic Medicine,
 University of Cambridge. MIT licence.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 from .annotation import BROWSER_DATA, GTF, AnnotationError, BrowserData, Gene, Transcript, annotation  # noqa: E402
 from .build import Written, make  # noqa: E402

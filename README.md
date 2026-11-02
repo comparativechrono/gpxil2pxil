@@ -7,7 +7,7 @@ reference, or from either of a person's haplotypes, so that someone's own
 version of a protein can be seen and compared with the reference.
 
 Genes and transcripts come from the
-[Gpxil browser](https://comparativechrono.github.io/Gpxil-browser/)'s gene
+[Gpxil browser](https://pixelverse.cam/)'s gene
 files (every Ensembl release 116 transcript on GRCh38, read from the web a gene
 at a time), or from any GTF file (Ensembl or GENCODE).
 
@@ -15,7 +15,7 @@ at a time), or from any GTF file (Ensembl or GENCODE).
 pip install gpxil2pxil
 
 # TP53 from the GRCh38 reference, read from the Gpxil browser (nothing to download first)
-gpxil2pxil https://comparativechrono.github.io/Gpxil-browser/data/grch38/gpxil/chr17.gpxil.tif TP53
+gpxil2pxil https://pixelverse.cam/data/grch38/gpxil/chr17.gpxil.tif TP53
 
 # a person's TP53 and BRCA1, both haplotypes and the reference, every transcript
 gpxil2pxil HG002.gpxil.tif TP53 BRCA1 --haplotypes all --transcripts all -o pictures

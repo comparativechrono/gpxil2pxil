@@ -407,7 +407,7 @@ def test_a_reader_that_stops_early(world, tmp_path):
 
 @pytest.mark.skipif(not os.environ.get("GPXIL2PXIL_NETWORK"), reason="set GPXIL2PXIL_NETWORK=1 to use the Gpxil browser's files")
 def test_tp53_from_the_gpxil_browser(tmp_path):
-    with GpxilFile("https://comparativechrono.github.io/Gpxil-browser/data/grch38/gpxil/chr17.gpxil.tif") as gx:
+    with GpxilFile("https://pixelverse.cam/data/grch38/gpxil/chr17.gpxil.tif") as gx:
         gene = BrowserData().find("TP53")
         written = make(gx, gene, kinds=("protein",), out_dir=str(tmp_path))
     seq, meta = pxil.read(written[0].path)

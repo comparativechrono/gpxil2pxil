@@ -20,7 +20,7 @@ CANONICAL, MANE_SELECT, MANE_CLINICAL, BASIC = 1, 2, 4, 8
 INCOMPLETE = {"cds_start_NF", "cds_end_NF", "mRNA_start_NF", "mRNA_end_NF"}
 
 #: the Gpxil browser's gene files: Ensembl release 116 on GRCh38, every transcript
-BROWSER_DATA = "https://comparativechrono.github.io/Gpxil-browser/data/grch38"
+BROWSER_DATA = "https://pixelverse.cam/data/grch38"
 #: an environment variable naming another copy of them (a URL or a folder), used in place of BROWSER_DATA
 BROWSER_DATA_ENV = "GPXIL_BROWSER_DATA"
 

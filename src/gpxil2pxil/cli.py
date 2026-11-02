@@ -36,7 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
         description="Pictures (pxil files) of genes, transcripts and proteins from a gpxil genome: its reference, or a sample's haplotypes.",
         epilog=(
             "examples:\n"
-            "  gpxil2pxil https://comparativechrono.github.io/Gpxil-browser/data/grch38/gpxil/chr17.gpxil.tif TP53\n"
+            "  gpxil2pxil https://pixelverse.cam/data/grch38/gpxil/chr17.gpxil.tif TP53\n"
             "  gpxil2pxil HG002.gpxil.tif TP53 BRCA1 --haplotypes all -o pictures\n"
             "  gpxil2pxil HG002.gpxil.tif TP53 --transcripts all --kinds protein\n"
             "  gpxil2pxil genome.gpxil.tif MYGENE --annotation genes.gtf.gz\n"
